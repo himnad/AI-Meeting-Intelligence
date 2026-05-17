@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 import shutil
 import os
 
-from app.transcriber import transcribe_audio
+from app.transcriber_deploy import transcribe_audio
 from app.gemini_utils import generate_meeting_summary
 from app.pdf_generator import generate_pdf_report
 from app.database import init_db, save_meeting, get_all_meetings, get_meeting_by_id
