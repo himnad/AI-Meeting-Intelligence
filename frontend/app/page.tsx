@@ -27,20 +27,30 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MeetingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"summary" | "transcript">("summary");
+  const [activeTab, setActiveTab] = useState<"summary" | "transcript">(
+    "summary"
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // History state
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Backend URL
+  const BACKEND_URL =
+    "https://ai-meeting-intelligence-iw1r.onrender.com";
+
   // Load history when switching to history view
   useEffect(() => {
     if (view === "history") {
       setHistoryLoading(true);
-      fetch("http://127.0.0.1:8000/meetings")
+
+      fetch(`${BACKEND_URL}/meetings`)
         .then((res) => res.json())
-        .then((data) => { setMeetings(data); setHistoryLoading(false); })
+        .then((data) => {
+          setMeetings(data);
+          setHistoryLoading(false);
+        })
         .catch(() => setHistoryLoading(false));
     }
   }, [view]);
@@ -48,12 +58,15 @@ export default function Home() {
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+
     const dropped = e.dataTransfer.files[0];
+
     if (dropped) setFile(dropped);
   }, []);
 
   const handleUpload = async () => {
     if (!file) return;
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -62,15 +75,22 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/upload-audio", {
+      const res = await fetch(`${BACKEND_URL}/upload-audio`, {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Server error. Please try again.");
+
+      if (!res.ok) {
+        throw new Error("Server error. Please try again.");
+      }
+
       const data = await res.json();
+
       setResult(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(
+        err instanceof Error ? err.message : "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
@@ -84,45 +104,98 @@ export default function Home() {
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
+
     return d.toLocaleDateString("en-IN", {
-      day: "numeric", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0c0f] text-white font-sans" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-
+    <div
+      className="min-h-screen bg-[#0c0c0f] text-white font-sans"
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
+
         .gradient-border {
-          background: linear-gradient(#0c0c0f, #0c0c0f) padding-box,
-                      linear-gradient(135deg, #4ade80, #06b6d4, #8b5cf6) border-box;
+          background:
+            linear-gradient(#0c0c0f, #0c0c0f) padding-box,
+            linear-gradient(135deg, #4ade80, #06b6d4, #8b5cf6) border-box;
+
           border: 1px solid transparent;
         }
-        .glow-green { box-shadow: 0 0 40px rgba(74, 222, 128, 0.15); }
+
+        .glow-green {
+          box-shadow: 0 0 40px rgba(74, 222, 128, 0.15);
+        }
+
         @keyframes pulse-dot {
-          0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+          0%, 100% {
+            opacity: 1;
+          }
+
+          50% {
+            opacity: 0.3;
+          }
         }
+
         @keyframes spin-slow {
-          from { transform: rotate(0deg); } to { transform: rotate(360deg); }
+          from {
+            transform: rotate(0deg);
+          }
+
+          to {
+            transform: rotate(360deg);
+          }
         }
+
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        .fade-up { animation: fadeUp 0.5s ease forwards; }
-        .dot-1 { animation: pulse-dot 1.4s ease infinite 0s; }
-        .dot-2 { animation: pulse-dot 1.4s ease infinite 0.2s; }
-        .dot-3 { animation: pulse-dot 1.4s ease infinite 0.4s; }
-        .spinner { animation: spin-slow 1.2s linear infinite; }
+
+        .fade-up {
+          animation: fadeUp 0.5s ease forwards;
+        }
+
+        .dot-1 {
+          animation: pulse-dot 1.4s ease infinite 0s;
+        }
+
+        .dot-2 {
+          animation: pulse-dot 1.4s ease infinite 0.2s;
+        }
+
+        .dot-3 {
+          animation: pulse-dot 1.4s ease infinite 0.4s;
+        }
+
+        .spinner {
+          animation: spin-slow 1.2s linear infinite;
+        }
+
         .tab-active {
           background: rgba(74, 222, 128, 0.1);
           color: #4ade80;
           border-color: rgba(74, 222, 128, 0.3);
         }
+
         .card-hover:hover {
           background: rgba(255,255,255,0.03);
         }
+
         .nav-active {
           color: rgba(255,255,255,0.8);
           border-bottom: 2px solid #4ade80;
@@ -133,13 +206,24 @@ export default function Home() {
       <header className="border-b border-white/5 px-8 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-cyan-400 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="22"/>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2.5"
+            >
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="22" />
             </svg>
           </div>
-          <span style={{ fontFamily: "'DM Serif Display', serif" }} className="text-lg text-white/90 tracking-wide">
+
+          <span
+            style={{ fontFamily: "'DM Serif Display', serif" }}
+            className="text-lg text-white/90 tracking-wide"
+          >
             MeetingMind
           </span>
         </div>
@@ -147,17 +231,30 @@ export default function Home() {
         {/* Nav Tabs */}
         <div className="flex items-center gap-6">
           <button
-            onClick={() => { setView("upload"); reset(); }}
-            className={`text-sm pb-1 transition-colors ${view === "upload" ? "nav-active" : "text-white/30 hover:text-white/50"}`}
+            onClick={() => {
+              setView("upload");
+              reset();
+            }}
+            className={`text-sm pb-1 transition-colors ${
+              view === "upload"
+                ? "nav-active"
+                : "text-white/30 hover:text-white/50"
+            }`}
           >
             Upload
           </button>
+
           <button
             onClick={() => setView("history")}
-            className={`text-sm pb-1 transition-colors ${view === "history" ? "nav-active" : "text-white/30 hover:text-white/50"}`}
+            className={`text-sm pb-1 transition-colors ${
+              view === "history"
+                ? "nav-active"
+                : "text-white/30 hover:text-white/50"
+            }`}
           >
             History
           </button>
+
           <div className="flex items-center gap-2 text-xs text-white/30 ml-4">
             <div className="w-1.5 h-1.5 rounded-full bg-green-400 dot-1"></div>
             <span>AI Ready</span>
@@ -166,7 +263,6 @@ export default function Home() {
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-16">
-
         {/* ===== UPLOAD VIEW ===== */}
         {view === "upload" && (
           <>
@@ -177,51 +273,91 @@ export default function Home() {
                   <p className="text-xs uppercase tracking-[0.3em] text-green-400/70 mb-4 font-medium">
                     AI Meeting Intelligence
                   </p>
-                  <h1 style={{ fontFamily: "'DM Serif Display', serif" }} className="text-5xl text-white/95 leading-tight mb-4">
-                    Turn meetings into<br />
-                    <span className="italic text-white/50">actionable insights</span>
+
+                  <h1
+                    style={{ fontFamily: "'DM Serif Display', serif" }}
+                    className="text-5xl text-white/95 leading-tight mb-4"
+                  >
+                    Turn meetings into
+                    <br />
+                    <span className="italic text-white/50">
+                      actionable insights
+                    </span>
                   </h1>
+
                   <p className="text-white/35 text-base leading-relaxed max-w-md mx-auto">
-                    Upload any meeting audio and get instant transcription, summary, action items and decisions — powered by Gemini AI.
+                    Upload any meeting audio and get instant transcription,
+                    summary, action items and decisions — powered by Gemini AI.
                   </p>
                 </div>
 
                 {/* Upload Card */}
                 <div
-                  className={`gradient-border rounded-2xl p-8 cursor-pointer transition-all duration-300 ${isDragging ? "glow-green bg-green-400/5" : "hover:bg-white/[0.02]"}`}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  className={`gradient-border rounded-2xl p-8 cursor-pointer transition-all duration-300 ${
+                    isDragging
+                      ? "glow-green bg-green-400/5"
+                      : "hover:bg-white/[0.02]"
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
-                  onClick={() => !file && fileInputRef.current?.click()}
+                  onClick={() =>
+                    !file && fileInputRef.current?.click()
+                  }
                 >
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="audio/*,.mp3,.wav,.mpeg,.m4a"
                     className="hidden"
-                    onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])}
+                    onChange={(e) =>
+                      e.target.files?.[0] &&
+                      setFile(e.target.files[0])
+                    }
                   />
 
                   {!file ? (
                     <div className="flex flex-col items-center gap-4 py-8">
-                      <div className={`w-16 h-16 rounded-2xl border border-white/10 flex items-center justify-center transition-colors ${isDragging ? "border-green-400/40 bg-green-400/10" : "bg-white/[0.03]"}`}>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={isDragging ? "#4ade80" : "rgba(255,255,255,0.3)"} strokeWidth="1.5">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                          <polyline points="17 8 12 3 7 8"/>
-                          <line x1="12" y1="3" x2="12" y2="15"/>
+                      <div
+                        className={`w-16 h-16 rounded-2xl border border-white/10 flex items-center justify-center transition-colors ${
+                          isDragging
+                            ? "border-green-400/40 bg-green-400/10"
+                            : "bg-white/[0.03]"
+                        }`}
+                      >
+                        <svg
+                          width="28"
+                          height="28"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke={
+                            isDragging
+                              ? "#4ade80"
+                              : "rgba(255,255,255,0.3)"
+                          }
+                          strokeWidth="1.5"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="17 8 12 3 7 8" />
+                          <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
                       </div>
+
                       <div className="text-center">
                         <p className="text-white/60 text-sm mb-1">
-                          {isDragging ? "Drop your audio file here" : "Drag & drop your audio file"}
+                          {isDragging
+                            ? "Drop your audio file here"
+                            : "Drag & drop your audio file"}
                         </p>
-                        <p className="text-white/20 text-xs">MP3, WAV, M4A, MPEG supported</p>
+
+                        <p className="text-white/20 text-xs">
+                          MP3, WAV, M4A, MPEG supported
+                        </p>
                       </div>
-                      <div className="flex items-center gap-3 w-full max-w-xs">
-                        <div className="h-px flex-1 bg-white/5"></div>
-                        <span className="text-white/15 text-xs">or</span>
-                        <div className="h-px flex-1 bg-white/5"></div>
-                      </div>
+
                       <button className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/50 text-sm transition-colors">
                         Browse files
                       </button>
@@ -230,23 +366,38 @@ export default function Home() {
                     <div className="flex items-center justify-between py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-green-400/10 border border-green-400/20 flex items-center justify-center">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5">
-                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#4ade80"
+                            strokeWidth="1.5"
+                          >
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
                           </svg>
                         </div>
+
                         <div>
-                          <p className="text-white/80 text-sm font-medium truncate max-w-[280px]">{file.name}</p>
-                          <p className="text-white/25 text-xs mt-0.5">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                          <p className="text-white/80 text-sm font-medium truncate max-w-[280px]">
+                            {file.name}
+                          </p>
+
+                          <p className="text-white/25 text-xs mt-0.5">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
                         </div>
                       </div>
+
                       <button
-                        onClick={(e) => { e.stopPropagation(); reset(); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          reset();
+                        }}
                         className="text-white/20 hover:text-white/50 transition-colors p-2"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
+                        ✕
                       </button>
                     </div>
                   )}
@@ -266,65 +417,52 @@ export default function Home() {
                     disabled={loading}
                     className="mt-4 w-full py-4 rounded-xl bg-gradient-to-r from-green-400 to-cyan-400 text-black font-semibold text-sm tracking-wide hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                   >
-                    {loading ? (
-                      <>
-                        <svg className="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
-                          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                        </svg>
-                        Processing with AI...
-                      </>
-                    ) : (
-                      <>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polygon points="5 3 19 12 5 21 5 3"/>
-                        </svg>
-                        Analyse Meeting
-                      </>
-                    )}
+                    {loading
+                      ? "Processing with AI..."
+                      : "Analyse Meeting"}
                   </button>
-                )}
-
-                {/* Loading State */}
-                {loading && (
-                  <div className="mt-8 flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-2 text-white/30 text-sm">
-                      <span>Transcribing audio</span>
-                      <div className="flex gap-1">
-                        <div className="w-1 h-1 rounded-full bg-white/30 dot-1"></div>
-                        <div className="w-1 h-1 rounded-full bg-white/30 dot-2"></div>
-                        <div className="w-1 h-1 rounded-full bg-white/30 dot-3"></div>
-                      </div>
-                    </div>
-                    <p className="text-white/15 text-xs">This may take a minute for longer recordings</p>
-                  </div>
                 )}
               </>
             ) : (
-              /* Results */
               <div className="fade-up">
                 <div className="flex items-center justify-between mb-8">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                      <span className="text-green-400 text-xs font-medium uppercase tracking-widest">Analysis Complete</span>
+
+                      <span className="text-green-400 text-xs font-medium uppercase tracking-widest">
+                        Analysis Complete
+                      </span>
                     </div>
-                    <h2 style={{ fontFamily: "'DM Serif Display', serif" }} className="text-2xl text-white/90">
+
+                    <h2
+                      style={{
+                        fontFamily: "'DM Serif Display', serif",
+                      }}
+                      className="text-2xl text-white/90"
+                    >
                       {result.filename}
                     </h2>
-                    <p className="text-white/25 text-xs mt-1">Language detected: {result.language?.toUpperCase()}</p>
+
+                    <p className="text-white/25 text-xs mt-1">
+                      Language detected:{" "}
+                      {result.language?.toUpperCase()}
+                    </p>
                   </div>
+
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => window.open("http://127.0.0.1:8000/download-report", "_blank")}
+                      onClick={() =>
+                        window.open(
+                          `${BACKEND_URL}/download-report`,
+                          "_blank"
+                        )
+                      }
                       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-400/10 border border-green-400/20 text-green-400 text-sm hover:bg-green-400/20 transition-colors"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
                       Download PDF
                     </button>
+
                     <button
                       onClick={reset}
                       className="px-4 py-2 rounded-xl border border-white/10 text-white/30 text-sm hover:text-white/60 hover:border-white/20 transition-colors"
@@ -346,40 +484,18 @@ export default function Home() {
                           : "border-white/5 text-white/25 hover:text-white/50 hover:border-white/10"
                       }`}
                     >
-                      {tab === "summary" ? "AI Summary" : "Transcript"}
+                      {tab === "summary"
+                        ? "AI Summary"
+                        : "Transcript"}
                     </button>
                   ))}
                 </div>
 
                 {activeTab === "summary" ? (
                   <div className="gradient-border rounded-2xl p-6">
-                    <div className="prose prose-invert max-w-none">
-                      {result.meeting_summary.split("\n").map((line, i) => {
-                        if (!line.trim()) return <div key={i} className="h-2" />;
-                        if (/^#+\s/.test(line) || /^\*\*.*\*\*$/.test(line)) {
-                          return (
-                            <h3 key={i} className="text-white/80 font-semibold text-sm uppercase tracking-widest mt-6 mb-3 first:mt-0">
-                              {line.replace(/^#+\s/, "").replace(/\*\*/g, "")}
-                            </h3>
-                          );
-                        }
-                        if (/^\d+\./.test(line) || /^[-•*]/.test(line.trim())) {
-                          return (
-                            <div key={i} className="flex gap-3 mb-2">
-                              <span className="text-green-400/50 mt-0.5 flex-shrink-0">▸</span>
-                              <p className="text-white/55 text-sm leading-relaxed">
-                                {line.replace(/^[\d]+\.\s|^[-•*]\s/, "").replace(/\*\*(.*?)\*\*/g, "$1")}
-                              </p>
-                            </div>
-                          );
-                        }
-                        return (
-                          <p key={i} className="text-white/55 text-sm leading-relaxed mb-2">
-                            {line.replace(/\*\*(.*?)\*\*/g, "$1")}
-                          </p>
-                        );
-                      })}
-                    </div>
+                    <p className="text-white/55 text-sm leading-relaxed whitespace-pre-wrap">
+                      {result.meeting_summary}
+                    </p>
                   </div>
                 ) : (
                   <div className="gradient-border rounded-2xl p-6">
@@ -400,76 +516,65 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.3em] text-green-400/70 mb-3 font-medium">
                 Meeting History
               </p>
-              <h1 style={{ fontFamily: "'DM Serif Display', serif" }} className="text-4xl text-white/95">
+
+              <h1
+                style={{
+                  fontFamily: "'DM Serif Display', serif",
+                }}
+                className="text-4xl text-white/95"
+              >
                 Past Meetings
               </h1>
+
               <p className="text-white/30 text-sm mt-2">
-                {meetings.length} meeting{meetings.length !== 1 ? "s" : ""} recorded
+                {meetings.length} meeting
+                {meetings.length !== 1 ? "s" : ""} recorded
               </p>
             </div>
 
             {historyLoading ? (
-              <div className="flex items-center gap-3 text-white/30 text-sm">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-400 dot-1"></div>
+              <div className="text-white/30">
                 Loading meetings...
               </div>
             ) : meetings.length === 0 ? (
               <div className="gradient-border rounded-2xl p-12 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mx-auto mb-4">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                  </svg>
-                </div>
-                <p className="text-white/30 text-sm">No meetings yet</p>
-                <p className="text-white/15 text-xs mt-1">Upload your first meeting to get started</p>
-                <button
-                  onClick={() => setView("upload")}
-                  className="mt-6 px-5 py-2.5 rounded-xl bg-green-400/10 border border-green-400/20 text-green-400 text-sm hover:bg-green-400/20 transition-colors"
-                >
-                  Upload Meeting
-                </button>
+                <p className="text-white/30 text-sm">
+                  No meetings yet
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {meetings.map((meeting, i) => (
+                {meetings.map((meeting) => (
                   <div
                     key={meeting.id}
                     className="card-hover gradient-border rounded-2xl p-5 transition-all duration-200"
-                    style={{ animationDelay: `${i * 0.05}s` }}
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-4 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-green-400/10 border border-green-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5">
-                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white/80 text-sm font-medium truncate">{meeting.filename}</p>
-                          <p className="text-white/25 text-xs mt-0.5">{formatDate(meeting.created_at)}</p>
-                          <p className="text-white/35 text-xs mt-2 leading-5 line-clamp-2">
-                            {meeting.summary_preview}
-                          </p>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white/80 text-sm font-medium truncate">
+                          {meeting.filename}
+                        </p>
+
+                        <p className="text-white/25 text-xs mt-0.5">
+                          {formatDate(meeting.created_at)}
+                        </p>
+
+                        <p className="text-white/35 text-xs mt-2 leading-5 line-clamp-2">
+                          {meeting.summary_preview}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="px-2 py-1 rounded-lg bg-white/5 text-white/25 text-xs">
-                          {meeting.language?.toUpperCase()}
-                        </span>
-                        <button
-                          onClick={() => window.open(`http://127.0.0.1:8000/download-report/${meeting.id}`, "_blank")}
-                          className="p-2 rounded-lg text-white/20 hover:text-green-400 hover:bg-green-400/10 transition-colors"
-                          title="Download PDF"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
-                        </button>
-                      </div>
+
+                      <button
+                        onClick={() =>
+                          window.open(
+                            `${BACKEND_URL}/download-report/${meeting.id}`,
+                            "_blank"
+                          )
+                        }
+                        className="p-2 rounded-lg text-white/20 hover:text-green-400 hover:bg-green-400/10 transition-colors"
+                      >
+                        Download
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -477,7 +582,6 @@ export default function Home() {
             )}
           </div>
         )}
-
       </main>
     </div>
   );
