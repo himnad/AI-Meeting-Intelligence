@@ -1,9 +1,13 @@
 import os
 import time
-from dotenv import load_dotenv
 from google import genai
 
-load_dotenv()
+# Don't use load_dotenv on production — Render injects env vars directly
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -24,7 +28,8 @@ def generate_meeting_summary(transcript):
     {transcript}
     """
 
-    # Retry up to 3 times on server errors
+    print(f"Gemini API Key loaded: {'YES' if os.getenv('GEMINI_API_KEY') else 'NO'}")
+
     for attempt in range(3):
         try:
             response = client.models.generate_content(
@@ -33,6 +38,7 @@ def generate_meeting_summary(transcript):
             )
             return response.text
         except Exception as e:
+            print(f"Gemini error: {e}")
             if "503" in str(e) or "UNAVAILABLE" in str(e):
                 print(f"Gemini unavailable, retrying in 30s... (attempt {attempt+1}/3)")
                 time.sleep(30)
