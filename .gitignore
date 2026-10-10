@@ -40,4 +40,5 @@ README.backup.md
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/*.tsbuildinfo
+.idea/
+*.tsbuildinfo
