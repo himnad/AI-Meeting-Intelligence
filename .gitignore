@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Databases and user uploads
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+*_converted.wav
+
+# Next.js
+node_modules/
+.next/
+out/
+.vercel/
+
+# Temporary files
+*.log
+*.tmp
+*.bak
+README.backup.md
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
