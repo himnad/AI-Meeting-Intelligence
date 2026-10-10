@@ -43,7 +43,6 @@ export default function Home() {
   // Load history when switching to history view
   useEffect(() => {
     if (view === "history") {
-      setHistoryLoading(true);
 
       fetch(`${BACKEND_URL}/meetings`)
         .then((res) => res.json())
@@ -245,7 +244,10 @@ export default function Home() {
           </button>
 
           <button
-            onClick={() => setView("history")}
+            onClick={() => {
+            setHistoryLoading(true);
+            setView("history");
+            }}
             className={`text-sm pb-1 transition-colors ${
               view === "history"
                 ? "nav-active"
